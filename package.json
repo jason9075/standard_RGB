@@ -1,6 +1,8 @@
 {
   "name": "gfx-lab",
   "version": "0.1.0",
+  "author": "jason9075 (Jason Kuan)",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "node --require ./scripts/fix-noexec.cjs ./node_modules/vite/bin/vite.js --port 8080",
