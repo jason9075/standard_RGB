@@ -1,0 +1,131 @@
+[
+  {
+    "id": "Wood051",
+    "label": "Wood · ambientCG",
+    "resolution": 1024,
+    "format": "JPEG",
+    "source": "https://ambientcg.com/a/Wood051",
+    "download": "https://ambientcg.com/get?file=Wood051_1K-JPG.zip",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://docs.ambientcg.com/license/",
+    "archiveSha256": "debf3d60f69a09c30613dc95a94da49c8116160ab8a29f77ac8e32cc33f1a1c3",
+    "maps": {
+      "Color": "Wood051_1K-JPG_Color.jpg",
+      "Displacement": "Wood051_1K-JPG_Displacement.jpg",
+      "NormalGL": "Wood051_1K-JPG_NormalGL.jpg",
+      "Roughness": "Wood051_1K-JPG_Roughness.jpg"
+    },
+    "files": [
+      {
+        "name": "Wood051_1K-JPG_Color.jpg",
+        "bytes": 871537,
+        "sha256": "f3c6c5456457e8d05c1fee4d2f186f41d0aea2b8a06859b69ce2934e11aa8798"
+      },
+      {
+        "name": "Wood051_1K-JPG_Displacement.jpg",
+        "bytes": 604880,
+        "sha256": "a852d76befbdb66cf17f1b4a18663f4b1fb2c0de03929a4c74752a688e23ff10"
+      },
+      {
+        "name": "Wood051_1K-JPG_NormalGL.jpg",
+        "bytes": 1583401,
+        "sha256": "9078dc50c43b55831ae322460fc96b62df68c7a148400bd7755ab2788fec1708"
+      },
+      {
+        "name": "Wood051_1K-JPG_Roughness.jpg",
+        "bytes": 680793,
+        "sha256": "b5736b940d721b49922cb14eebd52fd34f134b7ef99331ecf28565ce40358098"
+      }
+    ]
+  },
+  {
+    "id": "Bricks059",
+    "label": "Red brick · ambientCG",
+    "resolution": 1024,
+    "format": "JPEG",
+    "source": "https://ambientcg.com/a/Bricks059",
+    "download": "https://ambientcg.com/get?file=Bricks059_1K-JPG.zip",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://docs.ambientcg.com/license/",
+    "archiveSha256": "847dd2e4932563bbb67fdc2bad3cc08db72d74b3e81d242f31b663d8a3ea744b",
+    "maps": {
+      "AmbientOcclusion": "Bricks059_1K-JPG_AmbientOcclusion.jpg",
+      "Color": "Bricks059_1K-JPG_Color.jpg",
+      "Displacement": "Bricks059_1K-JPG_Displacement.jpg",
+      "NormalGL": "Bricks059_1K-JPG_NormalGL.jpg",
+      "Roughness": "Bricks059_1K-JPG_Roughness.jpg"
+    },
+    "files": [
+      {
+        "name": "Bricks059_1K-JPG_AmbientOcclusion.jpg",
+        "bytes": 551767,
+        "sha256": "b8a00c62826294065d48e6dd0299ac9466caf4874b394e730594c4d70330a442"
+      },
+      {
+        "name": "Bricks059_1K-JPG_Color.jpg",
+        "bytes": 1550678,
+        "sha256": "22b53ec9143b348ae26ed958cdfaa8977195c8daf534dc219f72dd10f2728e7a"
+      },
+      {
+        "name": "Bricks059_1K-JPG_Displacement.jpg",
+        "bytes": 385386,
+        "sha256": "09f231db731e774b915027cdd777f9fd361173dfcc9bd725b289e4d54b344765"
+      },
+      {
+        "name": "Bricks059_1K-JPG_NormalGL.jpg",
+        "bytes": 1818771,
+        "sha256": "0f313dae999ac33be4322b8e80a6877d455b4793bea3e9a83732a071bd92c436"
+      },
+      {
+        "name": "Bricks059_1K-JPG_Roughness.jpg",
+        "bytes": 637234,
+        "sha256": "58b905709e5d42451ab5aede42b386ceb442a21f979bb308eff77336db712b84"
+      }
+    ]
+  },
+  {
+    "id": "Metal036",
+    "label": "Metal · ambientCG",
+    "resolution": 1024,
+    "format": "JPEG",
+    "source": "https://ambientcg.com/a/Metal036",
+    "download": "https://ambientcg.com/get?file=Metal036_1K-JPG.zip",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://docs.ambientcg.com/license/",
+    "archiveSha256": "298a644a2968fd3701e3cf38eb9dd8231d9184320dfe9d631db833c303cd867e",
+    "maps": {
+      "Color": "Metal036_1K-JPG_Color.jpg",
+      "Displacement": "Metal036_1K-JPG_Displacement.jpg",
+      "Metalness": "Metal036_1K-JPG_Metalness.jpg",
+      "NormalGL": "Metal036_1K-JPG_NormalGL.jpg",
+      "Roughness": "Metal036_1K-JPG_Roughness.jpg"
+    },
+    "files": [
+      {
+        "name": "Metal036_1K-JPG_Color.jpg",
+        "bytes": 648174,
+        "sha256": "f7418afb4b46dd87b87486f55cd36d64a514c2024c4bc97f0250a75e17541192"
+      },
+      {
+        "name": "Metal036_1K-JPG_Displacement.jpg",
+        "bytes": 628307,
+        "sha256": "bcd1f94ce619b0ef24cb425ea825c7818cca0236471caed3274e8d16815815af"
+      },
+      {
+        "name": "Metal036_1K-JPG_Metalness.jpg",
+        "bytes": 4257,
+        "sha256": "843102638fa0a5bf897888868877efab8ccdc4cb84a48e57bdb52bfb30f5e714"
+      },
+      {
+        "name": "Metal036_1K-JPG_NormalGL.jpg",
+        "bytes": 341390,
+        "sha256": "857199621f23be5d5122fb1d5b4f8cb25f6baf75c34076e298c5952a27832755"
+      },
+      {
+        "name": "Metal036_1K-JPG_Roughness.jpg",
+        "bytes": 444821,
+        "sha256": "707a040de55a985384a92a133240541e5553fc8878d92e720595815f991e1dfc"
+      }
+    ]
+  }
+]

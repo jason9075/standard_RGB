@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#2e3440" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="description" content="An interactive Three.js experiment in sRGB, linear lighting, and texture data." />
+    <title>Standard RGB — Color Space Lab</title>
+    <script type="module" src="/src/main.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="./" aria-label="Standard RGB home"><span class="brand-symbol" aria-hidden="true"><i></i><i></i><i></i></span>Standard RGB<span class="brand-detail">COLOR SPACE LAB</span></a>
+      <span class="header-note">An experiment in interpretation</span>
+    </header>
+    <main>
+      <nav class="stage-tabs" aria-label="Experiment stages">
+        <button type="button" class="stage-tab active" data-stage="color" aria-current="step"><span>01</span>Color comparison</button>
+        <button type="button" class="stage-tab" data-stage="pipeline"><span>02</span>Break the pipeline</button>
+        <button type="button" class="stage-tab" data-stage="roughness"><span>03</span>Roughness reversal</button>
+      </nav>
+      <div class="experiment-heading"><div><p class="eyebrow" id="stage-eyebrow">OBSERVE / BASE COLOR</p><h1 id="stage-title">Same pixels. Different interpretation.</h1></div><p id="stage-description">Move the light. Only the texture's color-space interpretation changes.</p></div>
+      <section class="experiment" aria-label="Interactive color-space experiment">
+        <div class="scene-panel">
+          <div class="panel-heading"><span id="scene-caption">BASE COLOR COMPARISON</span><span class="live-status"><i></i>Live render</span></div>
+          <div id="viewport" class="viewport">
+            <canvas id="canvas" aria-label="Two spheres rendered under identical conditions"></canvas>
+            <div class="view-labels" id="view-labels">
+              <div><span class="badge wrong" id="left-badge">INCORRECT</span><h2 id="left-label">No sRGB Decode</h2><p id="left-subtitle">Encoded values used as linear</p></div>
+              <div id="right-view-label"><span class="badge correct">CORRECT</span><h2 id="right-label">sRGB → Linear</h2><p id="right-subtitle">Decoded before lighting</p></div>
+            </div>
+            <div class="sample-mark left" aria-hidden="true"></div><div class="sample-mark right" aria-hidden="true"></div>
+            <div class="view-readouts" id="view-readouts"><div><span id="left-value-label">Linear input</span><strong id="left-value">0.502</strong></div><div id="right-view-readout"><span id="right-value-label">Linear input</span><strong id="right-value">0.216</strong></div></div>
+            <p id="render-error" class="render-error" role="alert" hidden></p>
+          </div>
+          <div class="scene-footer"><span id="scene-conditions">Same geometry · material · camera · light</span><span>⊕ Center pixel sampled</span></div>
+          <div class="controls">
+            <div class="light-control"><div class="control-heading"><label for="light-intensity">Light Intensity</label><output id="light-value" for="light-intensity">2.00</output></div><input id="light-intensity" type="range" min="0" max="5" step="0.01" value="2" /><div class="range-labels"><span>Dark · 0</span><span>Bright · 5</span></div></div>
+            <div id="color-control" class="texture-control"><label for="texture-select">Base Color Texture</label><div class="texture-choice"><span id="texture-swatch" class="texture-swatch"></span><select id="texture-select"><option value="gray">Neutral gray</option><option value="clay">Terracotta</option><option value="sage">Sage green</option></select></div><span class="control-note" id="texture-bytes">RGB · 128 / 128 / 128</span></div>
+            <div id="roughness-control" class="texture-control" hidden><div class="control-heading"><label for="roughness-pixel">Roughness Pixel</label><output id="roughness-pixel-value" for="roughness-pixel">128</output></div><input id="roughness-pixel" type="range" min="0" max="255" step="1" value="128" /><div class="range-labels"><span>Smooth · 0</span><span>Rough · 255</span></div></div>
+          </div>
+        </div>
+        <aside class="pipeline-panel" aria-labelledby="pipeline-title">
+          <div class="panel-heading"><h2 id="pipeline-title">FOLLOW THE VALUE</h2><span class="small-tag" id="pipeline-tag">RGB</span></div>
+          <div class="pipeline-columns" id="pipeline-columns"><span>INCORRECT</span><span>CORRECT</span></div>
+          <div class="pipeline-step"><span class="step-number">01</span><div><h3 id="stored-title">Base Color Texture</h3><div class="pipeline-value" id="stored-value">0.502 / 0.502 / 0.502</div><p id="stored-note">8-bit RGB normalized by 255</p></div><span id="pipeline-swatch" class="texture-swatch"></span></div>
+          <div class="pipeline-connector">↓ <span>Interpretation</span></div>
+          <div class="pipeline-step interpretation"><span class="step-number">02</span><div><h3 id="interpretation-title">sRGB Decode</h3><div class="paired-values" id="decode-state"><span class="wrong-text">BYPASSED</span><span class="correct-text">APPLIED</span></div><div class="paired-values numeric" id="linear-values"><span>0.502</span><span>0.216</span></div><p id="linear-note">Linear RGB entering the material</p></div></div>
+          <div class="pipeline-connector">↓ <span id="lighting-connector">PBR lighting</span></div>
+          <div class="pipeline-step"><span class="step-number">03</span><div><h3 id="result-title">Linear Scene Result</h3><div class="paired-values numeric" id="scene-values"><span>—</span><span>—</span></div><p id="result-note">Actual center pixel, before display encoding</p></div></div>
+          <div class="pipeline-connector">↓ <span id="display-connector">Linear → sRGB · no tone mapping</span></div>
+          <div class="pipeline-step"><span class="step-number">04</span><div><h3>Display Output</h3><div class="paired-values numeric" id="display-values"><span>—</span><span>—</span></div><p id="display-note">sRGB bytes · RGB, clamped to 0–255</p></div></div>
+          <div class="toggle-controls">
+            <label class="switch-row" id="decode-control" hidden><span>Decode Base Color from sRGB</span><input id="decode-toggle" type="checkbox" checked role="switch" /><span class="switch-track" aria-hidden="true"></span></label>
+            <label class="switch-row" id="roughness-decode-control" hidden><span>Treat Roughness as sRGB</span><input id="roughness-decode-toggle" type="checkbox" checked role="switch" /><span class="switch-track" aria-hidden="true"></span></label>
+          </div>
+          <p id="pipeline-message" class="pipeline-message warning" role="status">⚠ Base Color on the left is being interpreted as linear data.</p>
+        </aside>
+      </section>
+      <section class="takeaway" aria-labelledby="takeaway-title"><div><p class="eyebrow">THE RULE THAT MATTERS</p><h2 id="takeaway-title">An image is a container.<br />Its meaning sets the pipeline.</h2></div><div class="meaning-path"><span class="meaning-label correct-text">COLOR DATA</span><p>Base Color · Albedo · Color Maps</p><div class="path"><span>sRGB</span><b>→</b><span>Decode</span><b>→</b><span>Linear RGB</span></div></div><div class="meaning-path"><span class="meaning-label">NUMERIC DATA</span><p>Roughness · Metallic · AO · Masks</p><div class="path"><span>No sRGB decoding</span><b>→</b><span>Data values</span></div></div><p class="takeaway-end">Linear working space / material data <span>→</span> PBR <span>→</span> Display pipeline <span>→</span> Screen</p></section>
+      <footer class="site-footer"><span>gfx-lab / Three.js + KaTeX + Nord</span><button id="reset-button" type="button">Reset experiment ↺</button></footer>
+    </main>
+    <button id="open-math" class="math-button" type="button" aria-haspopup="dialog" aria-controls="math-modal" aria-label="Explain the math">💡</button>
+    <dialog id="math-modal" aria-labelledby="math-title"><div class="modal-header"><h2 id="math-title">Math Behind the Experiment</h2><div class="modal-actions"><button id="language-toggle" type="button">Eng/中</button><button id="close-math" type="button" aria-label="Close math explanation">Close ×</button></div></div><div id="math-content" class="modal-body"></div></dialog>
+  </body>
+</html>
