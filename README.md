@@ -22,7 +22,6 @@ just dev
 ## 實驗
 
 - **Color comparison**：相同原始 Base Color 位元組，左側不解碼，右側使用 `THREE.SRGBColorSpace` 解碼；共用場景、幾何、相機、材質參數、光照與環境。
-- **Break the pipeline**：切換 Base Color 解碼，觀察貼圖、線性輸入、實際場景像素和顯示編碼的數值。
 - **Roughness reversal**：兩側使用相同 `THREE.NoColorSpace` 資料貼圖，左側 shader 故意套用 sRGB 解碼。關閉錯誤解碼後兩側結果一致。可調整 0–255 的粗糙度像素。
 
 Light Intensity 同時調整方向光與共用環境強度；值為 0 時，物體不接收光照。沒有色調映射，輸出為 sRGB。中心標記的線性 RGB 是 GPU 浮點渲染結果；顯示位元組由此值套用 sRGB 輸出轉換並截取至 8 位元範圍，因此硬體取整與反鋸齒可能有一個位元組的差異。裝置若不支援浮點讀回，頁面會顯示數值不可用。
@@ -45,7 +44,7 @@ Light Intensity 同時調整方向光與共用環境強度；值為 0 時，物�
 | 紅磚 Bricks059 | [ambientCG](https://ambientcg.com/a/Bricks059) | Color、Roughness、NormalGL、AO、Displacement |
 | 金屬 Metal036 | [ambientCG](https://ambientcg.com/a/Metal036) | Color、Roughness、NormalGL、Metalness、Displacement |
 
-貼圖位於 `public/textures/`，可在前兩階段的 **Base Color Texture** 選單切換。下載材質的 Color 貼圖使用 sRGB，Roughness、NormalGL、Metalness 與 AO 使用 NoColorSpace；錯誤材質共用相同影像與資料貼圖，只略過 Base Color 解碼。Displacement 保留供後續使用，未套用到球體。
+貼圖位於 `public/textures/`，可在 **Color comparison** 階段的 **Base Color Texture** 選單切換。下載材質的 Color 貼圖使用 sRGB，Roughness、NormalGL、Metalness 與 AO 使用 NoColorSpace；錯誤材質共用相同影像與資料貼圖，只略過 Base Color 解碼。Displacement 保留供後續使用，未套用到球體。
 
 貼圖與線性輸入的數值也由 GPU 在中心標記位置取樣，包含實際濾波結果。Roughness 教學階段仍使用可調整的灰階資料貼圖。
 

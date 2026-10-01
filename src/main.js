@@ -8,7 +8,7 @@ import { srgbToLinear, displayByte } from './color-math.js';
 import { materialCatalog, materialUrl, loadMaterial, disposeMaterials } from './materials.js';
 
 const $ = (id) => document.getElementById(id);
-const state = { stage: 'color', light: 2, texture: 'gray', decode: true, roughnessDecode: true, roughnessPixel: 128 };
+const state = { stage: 'color', light: 2, texture: 'gray', roughnessDecode: true, roughnessPixel: 128 };
 const presets = { gray: [128, 128, 128], clay: [180, 100, 74], sage: [113, 151, 120] };
 let selectedMaterial = null;
 for (const asset of materialCatalog) {
@@ -19,7 +19,6 @@ for (const asset of materialCatalog) {
 }
 const descriptions = {
   color: ['OBSERVE / BASE COLOR', 'Same pixels. Different interpretation.', "Move the light. Only the texture's color-space interpretation changes.", 'BASE COLOR COMPARISON'],
-  pipeline: ['MANIPULATE / THE PIPELINE', 'Break the decode. Follow the value.', 'Switch decoding off and watch the numbers travel through the renderer.', 'BASE COLOR SANDBOX'],
   roughness: ['UNDERSTAND / NUMERIC DATA', 'Same image. A different kind of data.', 'These pixels describe roughness. Decoding them changes the material.', 'ROUGHNESS COMPARISON'],
 };
 const format = (value) => value.toFixed(3);
@@ -28,21 +27,46 @@ function values(id, entries, classes = []) {
   const parent = $(id);
   parent.replaceChildren(...entries.map((entry, i) => {
     const span = document.createElement('span');
+    const content = id === 'display-values' ? document.createElement('span') : span;
     if (parent.classList.contains('numeric') && entry.includes(' / ')) {
       entry.split(' / ').forEach((channel, index) => {
-        if (index) span.append(' / ');
+        if (index) content.append(' / ');
         const value = document.createElement('span');
         value.className = 'value-channel';
         value.textContent = channel;
-        span.appendChild(value);
+        content.appendChild(value);
       });
     } else {
-      span.textContent = entry;
+      content.textContent = entry;
+    }
+    if (id === 'display-values') {
+      content.className = 'display-rgb';
+      span.appendChild(content);
+      const footer = document.createElement('span');
+      footer.className = 'display-color';
+      const swatch = document.createElement('i');
+      swatch.className = 'output-swatch';
+      const code = document.createElement('span');
+      code.className = 'value-hex';
+      if (/^\d{1,3} \/ \d{1,3} \/ \d{1,3}$/.test(entry)) {
+        const channels = entry.split(' / ').map(Number);
+        const hex = `#${channels.map((channel) => channel.toString(16).padStart(2, '0')).join('').toUpperCase()}`;
+        swatch.style.backgroundColor = `rgb(${entry.replaceAll(' / ', ', ')})`;
+        swatch.setAttribute('role', 'img');
+        swatch.setAttribute('aria-label', `Center pixel color ${hex}`);
+        swatch.title = hex;
+        code.textContent = hex;
+      } else {
+        swatch.classList.add('unavailable');
+        swatch.setAttribute('aria-hidden', 'true');
+        code.textContent = '#------';
+      }
+      footer.append(swatch, code);
+      span.appendChild(footer);
     }
     if (classes[i]) span.className = classes[i];
     return span;
   }));
-  parent.classList.toggle('single', entries.length === 1);
 }
 
 // Separate texture metadata, identical byte storage. Only interpretation differs.
@@ -162,14 +186,13 @@ function requestRender() {
 
 function activeMaterials() {
   if (state.stage === 'roughness') return [wrongDataMaterial, dataMaterial];
-  if (state.stage === 'pipeline') return [state.decode ? colorMaterial : wrongColorMaterial];
   return [wrongColorMaterial, colorMaterial];
 }
 
 function render() {
   pendingFrame = false;
   const generation = ++renderGeneration;
-  const { width, height } = $('viewport').getBoundingClientRect();
+  const { width, height, top } = $('viewport').getBoundingClientRect();
   if (!width || !height) return;
   renderer.setSize(width, height, false);
   keyLight.intensity = state.light;
@@ -178,8 +201,16 @@ function render() {
   roughnessDecodeUniform.value = Number(state.roughnessDecode);
   const materials = activeMaterials();
   const viewWidth = width / materials.length;
-  // Keep the whole sphere inside each narrow mobile viewport.
-  camera.position.z = Math.max(5.1, 4 * height / viewWidth);
+  // Reserve space around the labels and readouts before sizing the sphere.
+  const labelsBottom = $('view-labels').getBoundingClientRect().bottom - top;
+  const readoutsTop = $('view-readouts').getBoundingClientRect().top - top;
+  const radius = Math.max(1, Math.min(
+    height / 2 - labelsBottom - 24,
+    readoutsTop - height / 2 - 24,
+    viewWidth / 2 - 24,
+  ));
+  const focalLength = height / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
+  camera.position.z = Math.max(5.1, Math.sqrt(1 + (focalLength / radius) ** 2));
   camera.aspect = viewWidth / height;
   camera.updateProjectionMatrix();
   renderer.setRenderTarget(null);
@@ -226,9 +257,9 @@ function render() {
     if (sampleTexture) {
       const [encoded, decoded] = results.slice(materials.length).map((sample) => Array.from(sample).slice(0, 3));
       $('stored-value').textContent = rgb(encoded);
-      $('left-value').textContent = rgb(state.stage === 'pipeline' && state.decode ? decoded : encoded);
+      $('left-value').textContent = rgb(encoded);
       $('right-value').textContent = rgb(decoded);
-      values('linear-values', state.stage === 'pipeline' ? [rgb(state.decode ? decoded : encoded)] : [rgb(encoded), rgb(decoded)]);
+      values('linear-values', [rgb(encoded), rgb(decoded)]);
     }
   }).catch((error) => {
     if (generation !== renderGeneration) return;
@@ -245,7 +276,6 @@ function update({ preserveSamples = false } = {}) {
   renderGeneration++;
   $('scene-values').setAttribute('aria-busy', String(Boolean(sampleTarget)));
   const isRoughness = state.stage === 'roughness';
-  const isSingle = state.stage === 'pipeline';
   const copy = descriptions[state.stage];
   ['stage-eyebrow', 'stage-title', 'stage-description', 'scene-caption'].forEach((id, i) => { $(id).textContent = copy[i]; });
   document.querySelectorAll('[data-stage]').forEach((tab) => {
@@ -254,18 +284,14 @@ function update({ preserveSamples = false } = {}) {
     if (active) tab.setAttribute('aria-current', 'step');
     else tab.removeAttribute('aria-current');
   });
-  ['viewport', 'view-labels', 'view-readouts'].forEach((id) => $(id).classList.toggle('single', isSingle));
-  ['right-view-label', 'right-view-readout', 'pipeline-columns'].forEach((id) => { $(id).hidden = isSingle; });
   $('color-control').hidden = isRoughness;
   $('roughness-control').hidden = !isRoughness;
-  $('decode-control').hidden = !isSingle;
   $('roughness-decode-control').hidden = !isRoughness;
   $('light-value').value = state.light.toFixed(2);
   $('roughness-pixel-value').value = state.roughnessPixel;
-  $('decode-toggle').checked = state.decode;
   $('roughness-decode-toggle').checked = state.roughnessDecode;
   $('pipeline-tag').textContent = isRoughness ? 'DATA / G' : 'RGB';
-  $('canvas').setAttribute('aria-label', isSingle ? 'Sphere rendered with adjustable sRGB decoding' : `Two spheres with identical conditions comparing ${isRoughness ? 'roughness data' : 'base color'} interpretation`);
+  $('canvas').setAttribute('aria-label', `Two spheres with identical conditions comparing ${isRoughness ? 'roughness data' : 'base color'} interpretation`);
 
   const textureRgb = presets[state.texture] ?? presets.gray;
   if (!selectedMaterial) {
@@ -291,16 +317,16 @@ function update({ preserveSamples = false } = {}) {
   const decoded = encoded.map(srgbToLinear);
   const rawRoughness = state.roughnessPixel / 255;
   const wrongRoughness = state.roughnessDecode ? srgbToLinear(rawRoughness) : rawRoughness;
-  const wrong = isRoughness ? state.roughnessDecode : isSingle ? !state.decode : true;
+  const wrong = isRoughness ? state.roughnessDecode : true;
   $('left-badge').className = `badge ${wrong ? 'wrong' : 'correct'}`;
   $('left-badge').textContent = wrong ? 'INCORRECT' : 'CORRECT';
-  $('left-label').textContent = isRoughness ? (state.roughnessDecode ? 'Roughness as sRGB' : 'Roughness as Data') : isSingle && state.decode ? 'sRGB → Linear' : 'No sRGB Decode';
+  $('left-label').textContent = isRoughness ? (state.roughnessDecode ? 'Roughness as sRGB' : 'Roughness as Data') : 'No sRGB Decode';
   $('right-label').textContent = isRoughness ? 'Roughness as Data' : 'sRGB → Linear';
   $('left-subtitle').textContent = isRoughness ? (state.roughnessDecode ? 'Decoded data → smoother material' : 'Original material values preserved') : wrong ? 'Encoded values used as linear' : 'Decoded before lighting';
   $('right-subtitle').textContent = isRoughness ? 'Original material values preserved' : 'Decoded before lighting';
   $('left-value-label').textContent = $('right-value-label').textContent = isRoughness ? 'Material roughness' : 'Linear input';
   if (!preserveSamples || !selectedMaterial || isRoughness) {
-    $('left-value').textContent = isRoughness ? format(wrongRoughness) : rgb(isSingle && state.decode ? decoded : encoded);
+    $('left-value').textContent = isRoughness ? format(wrongRoughness) : rgb(encoded);
     $('right-value').textContent = isRoughness ? format(rawRoughness) : rgb(decoded);
   }
   $('stored-title').textContent = isRoughness ? 'Roughness Texture' : 'Base Color Texture';
@@ -314,9 +340,6 @@ function update({ preserveSamples = false } = {}) {
   if (isRoughness) {
     values('decode-state', [state.roughnessDecode ? 'sRGB DECODE' : 'DATA', 'DATA'], [wrong ? 'wrong-text' : 'correct-text', 'correct-text']);
     values('linear-values', [format(wrongRoughness), format(rawRoughness)]);
-  } else if (isSingle) {
-    values('decode-state', [state.decode ? 'APPLIED' : 'BYPASSED'], [wrong ? 'wrong-text' : 'correct-text']);
-    if (!selectedMaterial || !preserveSamples) values('linear-values', [rgb(state.decode ? decoded : encoded)]);
   } else {
     values('decode-state', ['BYPASSED', 'APPLIED'], ['wrong-text', 'correct-text']);
     if (!selectedMaterial || !preserveSamples) values('linear-values', [rgb(encoded), rgb(decoded)]);
@@ -330,14 +353,6 @@ function update({ preserveSamples = false } = {}) {
     values('scene-values', activeMaterials().map(() => sampleTarget ? '…' : 'Unavailable'));
     values('display-values', activeMaterials().map(() => sampleTarget ? '…' : 'Unavailable'));
   }
-  $('pipeline-message').className = `pipeline-message ${wrong ? 'warning' : 'success'}`;
-  $('pipeline-message').textContent = isRoughness
-    ? state.roughnessDecode
-      ? `⚠ Roughness is data, not color. sRGB decoding changed the intended value: ${format(rawRoughness)} → ${format(wrongRoughness)}.`
-      : '✓ Both objects read roughness as numeric data. Their materials now match.'
-    : wrong
-      ? `⚠ Base Color${isSingle ? '' : ' on the left'} is being interpreted as linear data.`
-      : '✓ Base Color is decoded into linear RGB before lighting.';
   requestRender();
 }
 
@@ -382,14 +397,13 @@ $('texture-select').addEventListener('change', async (event) => {
   }
 });
 $('roughness-pixel').addEventListener('input', (event) => { state.roughnessPixel = Number(event.target.value); update({ preserveSamples: true }); });
-$('decode-toggle').addEventListener('change', (event) => { state.decode = event.target.checked; update(); });
 $('roughness-decode-toggle').addEventListener('change', (event) => { state.roughnessDecode = event.target.checked; update(); });
 $('reset-button').addEventListener('click', () => {
   textureRequest++;
   selectedMaterial = null;
   assignColorMaps(null);
   $('texture-select').disabled = false;
-  Object.assign(state, { light: 2, texture: 'gray', decode: true, roughnessDecode: true, roughnessPixel: 128 });
+  Object.assign(state, { light: 2, texture: 'gray', roughnessDecode: true, roughnessPixel: 128 });
   $('light-intensity').value = state.light;
   $('texture-select').value = state.texture;
   $('roughness-pixel').value = state.roughnessPixel;
